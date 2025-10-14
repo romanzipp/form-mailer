@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  form-mailer:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - FROM_EMAIL=${FROM_EMAIL}
+      - RECIPIENT_EMAIL=${RECIPIENT_EMAIL}
+      - SUCCESS_URL=${SUCCESS_URL}
+    restart: unless-stopped
+    env_file:
+      - .env
