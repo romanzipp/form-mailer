@@ -8,7 +8,7 @@ Go service that receives form submissions and sends emails.
 docker pull ghcr.io/romanzipp/form-mailer:latest
 cp .env.example .env
 # Edit .env
-docker run -d -p 8080:8080 --env-file .env ghcr.io/YOUR_USERNAME/form-mailer:latest
+docker run -d -p 8080:8080 --env-file .env ghcr.io/romanzipp/form-mailer:latest
 ```
 
 Or with docker-compose:
