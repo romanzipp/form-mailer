@@ -1,27 +1,41 @@
 # Form Mailer
 
-Go service that receives form submissions and sends emails.
+A simple container you can point your **html `<form>`** to that sends a mail to a given recipient. That's it.
 
 ## Quick Start
 
 ```bash
 docker pull ghcr.io/romanzipp/form-mailer:latest
+
 cp .env.example .env
-# Edit .env
+
 docker run -d -p 8080:8080 --env-file .env ghcr.io/romanzipp/form-mailer:latest
 ```
 
 Or with docker-compose:
 
-```bash
-cp .env.example .env
-# Edit .env
-docker-compose up -d
+```yaml
+services:
+  form-mailer:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - SMTP_HOST=mail.example.com
+      - SMTP_PORT=587
+      - SMTP_USER=john@doe.com
+      - SMTP_PASSWORD=secret
+      - FROM_EMAIL=blog@doe.com
+      - RECIPIENT_EMAIL=john@doe.com
+      - SUCCESS_URL=https://example.com
+    restart: unless-stopped
 ```
 
 ## Environment Variables
 
 Required:
+
 - `SMTP_HOST` - SMTP server
 - `SMTP_USER` - SMTP username
 - `SMTP_PASSWORD` - SMTP password
@@ -30,15 +44,10 @@ Required:
 - `SUCCESS_URL` - Redirect URL after submission
 
 Optional:
+
 - `PORT` - Server port (default: 8080)
 - `SMTP_PORT` - SMTP port (default: 587)
 - `FROM_NAME` - From display name
-
-## Gmail Setup
-
-1. Enable 2FA
-2. Generate [App Password](https://myaccount.google.com/apppasswords)
-3. Use app password for `SMTP_PASSWORD`
 
 ## HTML Form
 
