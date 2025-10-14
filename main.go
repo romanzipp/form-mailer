@@ -89,18 +89,42 @@ func handleFormSubmission(config Config) http.HandlerFunc {
 		}
 
 		// Build email body from form data
-		var emailBody strings.Builder
-		emailBody.WriteString("New form submission:\n\n")
-		for key, values := range r.PostForm {
-			emailBody.WriteString(fmt.Sprintf("%s: %s\n", key, strings.Join(values, ", ")))
-		}
+		emailBody := buildEmailBody(r.PostForm)
 
 		// Send email asynchronously
-		go sendEmail(config, "New Form Submission", emailBody.String())
+		go sendEmail(config, "New Form Submission", emailBody)
 
 		// Redirect to success page
 		http.Redirect(w, r, config.SuccessURL, http.StatusSeeOther)
 	}
+}
+
+func buildEmailBody(formData map[string][]string) string {
+	var body strings.Builder
+	body.WriteString("<html><body>")
+	body.WriteString("<h2>New form submission</h2>")
+
+	for key, values := range formData {
+		// Capitalize first character of field name
+		fieldName := key
+		if len(fieldName) > 0 {
+			fieldName = strings.ToUpper(string(fieldName[0])) + fieldName[1:]
+		}
+
+		value := strings.Join(values, ", ")
+
+		// Check if value contains newlines (multiline text)
+		if strings.Contains(value, "\n") {
+			// Replace newlines with <br> for HTML and add extra spacing
+			htmlValue := strings.ReplaceAll(value, "\n", "<br>")
+			body.WriteString(fmt.Sprintf("<p><strong>%s:</strong><br>%s</p><br>", fieldName, htmlValue))
+		} else {
+			body.WriteString(fmt.Sprintf("<p><strong>%s:</strong> %s</p>", fieldName, value))
+		}
+	}
+
+	body.WriteString("</body></html>")
+	return body.String()
 }
 
 func sendEmail(config Config, subject, body string) {
@@ -109,6 +133,8 @@ func sendEmail(config Config, subject, body string) {
 	msg := []byte(fmt.Sprintf("From: %s\r\n"+
 		"To: %s\r\n"+
 		"Subject: %s\r\n"+
+		"MIME-Version: 1.0\r\n"+
+		"Content-Type: text/html; charset=UTF-8\r\n"+
 		"\r\n"+
 		"%s\r\n", config.FromEmail, config.RecipientEmail, subject, body))
 
