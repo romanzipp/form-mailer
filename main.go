@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"log"
 	"net/http"
 	"net/smtp"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -90,6 +92,13 @@ func handleFormSubmission(config Config) http.HandlerFunc {
 			return
 		}
 
+		// Validate field lengths
+		if err := validateFormData(r.PostForm); err != nil {
+			log.Printf("Form validation error: %v", err)
+			http.Error(w, "Form validation failed", http.StatusBadRequest)
+			return
+		}
+
 		// Build email body from form data
 		emailBody := buildEmailBody(r.PostForm)
 
@@ -99,6 +108,19 @@ func handleFormSubmission(config Config) http.HandlerFunc {
 		// Redirect to success page
 		http.Redirect(w, r, config.SuccessURL, http.StatusSeeOther)
 	}
+}
+
+func validateFormData(formData map[string][]string) error {
+	const maxFieldLength = 50000 // 50KB per field
+
+	for key, values := range formData {
+		for _, value := range values {
+			if len(value) > maxFieldLength {
+				return fmt.Errorf("field '%s' exceeds maximum length", key)
+			}
+		}
+	}
+	return nil
 }
 
 func buildEmailBody(formData map[string][]string) string {
@@ -115,18 +137,37 @@ func buildEmailBody(formData map[string][]string) string {
 
 		value := strings.Join(values, ", ")
 
+		// Escape HTML to prevent injection
+		escapedFieldName := html.EscapeString(fieldName)
+		escapedValue := html.EscapeString(value)
+
 		// Check if value contains newlines (multiline text)
 		if strings.Contains(value, "\n") {
 			// Replace newlines with <br> for HTML and add extra spacing
-			htmlValue := strings.ReplaceAll(value, "\n", "<br>")
-			body.WriteString(fmt.Sprintf("<p><strong>%s:</strong><br>%s</p><br>", fieldName, htmlValue))
+			htmlValue := strings.ReplaceAll(escapedValue, "\n", "<br>")
+			body.WriteString(fmt.Sprintf("<p><strong>%s:</strong><br>%s</p><br>", escapedFieldName, htmlValue))
 		} else {
-			body.WriteString(fmt.Sprintf("<p><strong>%s:</strong> %s</p>", fieldName, value))
+			body.WriteString(fmt.Sprintf("<p><strong>%s:</strong> %s</p>", escapedFieldName, escapedValue))
 		}
 	}
 
 	body.WriteString("</body></html>")
 	return body.String()
+}
+
+func sanitizeEmail(email string) string {
+	// Remove any CR/LF characters to prevent header injection
+	email = strings.ReplaceAll(email, "\r", "")
+	email = strings.ReplaceAll(email, "\n", "")
+	email = strings.TrimSpace(email)
+
+	// Basic email validation
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+	if !emailRegex.MatchString(email) {
+		return ""
+	}
+
+	return email
 }
 
 func sendEmail(config Config, subject, body string, formData map[string][]string) {
@@ -143,9 +184,12 @@ func sendEmail(config Config, subject, body string, formData map[string][]string
 		"To: %s\r\n"+
 		"Subject: %s\r\n", fromHeader, config.RecipientEmail, subject)
 
-	// Add Reply-To if email field exists in form
-	if emailValues, ok := formData["email"]; ok && len(emailValues) > 0 && emailValues[0] != "" {
-		headers += fmt.Sprintf("Reply-To: %s\r\n", emailValues[0])
+	// Add Reply-To if email field exists in form and is valid
+	if emailValues, ok := formData["email"]; ok && len(emailValues) > 0 {
+		sanitizedEmail := sanitizeEmail(emailValues[0])
+		if sanitizedEmail != "" {
+			headers += fmt.Sprintf("Reply-To: %s\r\n", sanitizedEmail)
+		}
 	}
 
 	headers += "MIME-Version: 1.0\r\n" +
