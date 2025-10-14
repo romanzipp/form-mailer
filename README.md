@@ -1,6 +1,6 @@
 # Form Mailer
 
-A simple container you can point your **html `<form>`** to that sends a mail to a given recipient. That's it.
+A simple container you can point your **html contact-`<form>`** to that sends a mail to a given recipient. That's it.
 
 ## Quick Start
 
