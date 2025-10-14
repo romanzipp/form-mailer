@@ -1,0 +1,15 @@
+form-mailer
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+.env
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
