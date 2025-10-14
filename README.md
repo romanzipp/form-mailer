@@ -5,7 +5,7 @@ Go service that receives form submissions and sends emails.
 ## Quick Start
 
 ```bash
-docker pull ghcr.io/YOUR_USERNAME/form-mailer:latest
+docker pull ghcr.io/romanzipp/form-mailer:latest
 cp .env.example .env
 # Edit .env
 docker run -d -p 8080:8080 --env-file .env ghcr.io/YOUR_USERNAME/form-mailer:latest
