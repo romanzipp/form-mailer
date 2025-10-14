@@ -32,6 +32,7 @@ Required:
 Optional:
 - `PORT` - Server port (default: 8080)
 - `SMTP_PORT` - SMTP port (default: 587)
+- `FROM_NAME` - From display name
 
 ## Gmail Setup
 
@@ -51,6 +52,8 @@ Optional:
 ```
 
 See `example.html` for styled version.
+
+Note: If form contains an `email` field, it will be set as Reply-To header.
 
 ## Endpoints
 

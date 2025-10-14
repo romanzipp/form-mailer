@@ -17,6 +17,7 @@ type Config struct {
 	SMTPPassword   string
 	RecipientEmail string
 	FromEmail      string
+	FromName       string
 	SuccessURL     string
 }
 
@@ -29,6 +30,7 @@ func loadConfig() Config {
 		SMTPPassword:   getEnv("SMTP_PASSWORD", ""),
 		RecipientEmail: getEnv("RECIPIENT_EMAIL", ""),
 		FromEmail:      getEnv("FROM_EMAIL", ""),
+		FromName:       getEnv("FROM_NAME", ""),
 		SuccessURL:     getEnv("SUCCESS_URL", "/success"),
 	}
 }
@@ -92,7 +94,7 @@ func handleFormSubmission(config Config) http.HandlerFunc {
 		emailBody := buildEmailBody(r.PostForm)
 
 		// Send email asynchronously
-		go sendEmail(config, "New Form Submission", emailBody)
+		go sendEmail(config, "New Form Submission", emailBody, r.PostForm)
 
 		// Redirect to success page
 		http.Redirect(w, r, config.SuccessURL, http.StatusSeeOther)
@@ -127,16 +129,30 @@ func buildEmailBody(formData map[string][]string) string {
 	return body.String()
 }
 
-func sendEmail(config Config, subject, body string) {
+func sendEmail(config Config, subject, body string, formData map[string][]string) {
 	auth := smtp.PlainAuth("", config.SMTPUser, config.SMTPPassword, config.SMTPHost)
 
-	msg := []byte(fmt.Sprintf("From: %s\r\n"+
+	// Format From header with display name if provided
+	fromHeader := config.FromEmail
+	if config.FromName != "" {
+		fromHeader = fmt.Sprintf("%s <%s>", config.FromName, config.FromEmail)
+	}
+
+	// Build email headers
+	headers := fmt.Sprintf("From: %s\r\n"+
 		"To: %s\r\n"+
-		"Subject: %s\r\n"+
-		"MIME-Version: 1.0\r\n"+
-		"Content-Type: text/html; charset=UTF-8\r\n"+
-		"\r\n"+
-		"%s\r\n", config.FromEmail, config.RecipientEmail, subject, body))
+		"Subject: %s\r\n", fromHeader, config.RecipientEmail, subject)
+
+	// Add Reply-To if email field exists in form
+	if emailValues, ok := formData["email"]; ok && len(emailValues) > 0 && emailValues[0] != "" {
+		headers += fmt.Sprintf("Reply-To: %s\r\n", emailValues[0])
+	}
+
+	headers += "MIME-Version: 1.0\r\n" +
+		"Content-Type: text/html; charset=UTF-8\r\n" +
+		"\r\n"
+
+	msg := []byte(headers + body + "\r\n")
 
 	addr := fmt.Sprintf("%s:%s", config.SMTPHost, config.SMTPPort)
 	err := smtp.SendMail(addr, auth, config.FromEmail, []string{config.RecipientEmail}, msg)
