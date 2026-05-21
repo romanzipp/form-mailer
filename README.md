@@ -1,5 +1,8 @@
 # Form Mailer
 
+> [!NOTE]
+> This project is primarily developed on [Codeberg](https://codeberg.org/romanzipp/form-mailer) and only mirrored to GitHub. Please open issues and pull requests there.
+
 A simple container you can point your **html contact-`<form>`** to that sends a mail to a given recipient. That's it.
 
 ## Quick Start
@@ -68,6 +71,16 @@ Note: If form contains an `email` field, it will be set as Reply-To header.
 
 - `POST /submit` - Handle form submission
 - `GET /health` - Health check
+
+## Kubernetes
+
+A Helm chart is published as an OCI artifact on each tag:
+
+```bash
+helm install form-mailer oci://ghcr.io/romanzipp/charts/form-mailer-chart --version <tag>
+```
+
+Chart sources live in `deploy/helm/form-mailer/`.
 
 ## Build from Source
 
