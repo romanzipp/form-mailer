@@ -1,0 +1,6 @@
+apiVersion: v2
+name: form-mailer-chart
+description: form-mailer HTML form to email service
+type: application
+version: 0.0.0
+appVersion: "0.0.0"

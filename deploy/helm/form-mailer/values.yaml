@@ -1,0 +1,81 @@
+image:
+  repository: ghcr.io/romanzipp/form-mailer
+  pullPolicy: IfNotPresent
+  tag: ""
+
+nameOverride: ""
+fullnameOverride: ""
+
+imagePullSecrets: []
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+    # - host: forms.example.com
+    #   paths:
+    #     - path: /
+    #       pathType: Prefix
+  tls: []
+    # - secretName: form-mailer-tls
+    #   hosts:
+    #     - forms.example.com
+  redirects: []
+    # - from: www.forms.example.com
+    #   to: forms.example.com
+    #   code: 301
+
+resources: {}
+  # requests:
+  #   cpu: 25m
+  #   memory: 32Mi
+  # limits:
+  #   memory: 128Mi
+
+# Plain environment variables passed to the container.
+# All form-mailer config is read from env vars:
+#   PORT, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD,
+#   FROM_EMAIL, FROM_NAME, RECIPIENT_EMAIL, SUCCESS_URL.
+# Secrets should go through `envFromSecret` below.
+env: {}
+  # PORT: "8080"
+  # SUCCESS_URL: "/success"
+
+# Optional reference to an existing Secret whose keys are injected as env vars.
+# Use this for SMTP credentials and any other sensitive values.
+envFromSecret:
+  name: ""
+
+probes:
+  liveness:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readiness:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 2
+    periodSeconds: 5
+
+podSecurityContext: {}
+
+securityContext: {}
+  # allowPrivilegeEscalation: false
+  # readOnlyRootFilesystem: true
+  # capabilities:
+  #   drop: [ ALL ]
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
