@@ -77,7 +77,7 @@ Note: If form contains an `email` field, it will be set as Reply-To header.
 A Helm chart is published as an OCI artifact on each tag:
 
 ```bash
-helm install form-mailer oci://ghcr.io/romanzipp/charts/form-mailer-chart --version <tag>
+helm install form-mailer oci://ghcr.io/romanzipp/form-mailer-chart --version <tag>
 ```
 
 Chart sources live in `deploy/helm/form-mailer/`.

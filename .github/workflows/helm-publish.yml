@@ -57,4 +57,4 @@ jobs:
         run: |
           OWNER="${GITHUB_REPOSITORY_OWNER,,}"
           helm push "${CHART_NAME}-${{ steps.version.outputs.version }}.tgz" \
-            "oci://${REGISTRY}/${OWNER}/charts"
+            "oci://${REGISTRY}/${OWNER}"
