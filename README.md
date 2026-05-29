@@ -51,6 +51,7 @@ Optional:
 - `PORT` - Server port (default: 8080)
 - `SMTP_PORT` - SMTP port (default: 587)
 - `FROM_NAME` - From display name
+- `BACK_URL` - URL used by the "Go back" link on validation and server error pages
 - `VALIDATION_RULES` - Per-field validation rules (see below)
 
 ## Validation

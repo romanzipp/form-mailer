@@ -1,0 +1,34 @@
+{{define "validation_error"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Submission error</title>
+  {{template "style"}}
+</head>
+<body>
+  <div class="card">
+    <h1>Please review your submission</h1>
+    <div class="error">{{.Error}}</div>
+    <form method="POST" action="{{.Action}}">
+      {{range .Fields}}
+      <div class="field">
+        <label for="f-{{.Name}}">{{.Label}}</label>
+        {{if .Multiline}}
+        <textarea id="f-{{.Name}}" name="{{.Name}}">{{.Value}}</textarea>
+        {{else}}
+        <input id="f-{{.Name}}" type="text" name="{{.Name}}" value="{{.Value}}">
+        {{end}}
+      </div>
+      {{end}}
+      <div class="actions">
+        <button type="submit">Try again</button>
+        {{if .BackURL}}<a class="back" href="{{.BackURL}}">Go back</a>{{end}}
+      </div>
+    </form>
+  </div>
+</body>
+</html>
+{{end}}
