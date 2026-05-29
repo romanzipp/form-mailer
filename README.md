@@ -59,12 +59,12 @@ Optional:
 Set `VALIDATION_RULES` to validate form fields before sending. Format:
 
 ```
-VALIDATION_RULES=email:required|email,name:required|min.2,message:max.5000
+VALIDATION_RULES=email:required,email|name:required,min.2|message:max.5000
 ```
 
-- Fields are comma-separated
+- Fields are separated by `|`
 - Field name and rules are separated by `:`
-- Multiple rules per field are separated by `|`
+- Multiple rules per field are separated by `,`
 - Rule arguments use `.` (e.g. `min.2`, `max.500`)
 
 Supported rules:

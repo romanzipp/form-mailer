@@ -22,7 +22,7 @@ func parseValidationRules(spec string) map[string][]ValidationRule {
 	if spec == "" {
 		return rules
 	}
-	for _, fieldSpec := range strings.Split(spec, ",") {
+	for _, fieldSpec := range strings.Split(spec, "|") {
 		fieldSpec = strings.TrimSpace(fieldSpec)
 		if fieldSpec == "" {
 			continue
@@ -36,7 +36,7 @@ func parseValidationRules(spec string) map[string][]ValidationRule {
 		if field == "" {
 			continue
 		}
-		for _, ruleSpec := range strings.Split(parts[1], "|") {
+		for _, ruleSpec := range strings.Split(parts[1], ",") {
 			ruleSpec = strings.TrimSpace(ruleSpec)
 			if ruleSpec == "" {
 				continue
