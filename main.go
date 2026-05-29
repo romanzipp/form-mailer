@@ -8,35 +8,80 @@ import (
 	"net/smtp"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Port           string
-	SMTPHost       string
-	SMTPPort       string
-	SMTPUser       string
-	SMTPPassword   string
-	RecipientEmail string
-	FromEmail      string
-	FromName       string
-	SuccessURL     string
+	Port            string
+	SMTPHost        string
+	SMTPPort        string
+	SMTPUser        string
+	SMTPPassword    string
+	RecipientEmail  string
+	FromEmail       string
+	FromName        string
+	SuccessURL      string
+	ValidationRules map[string][]ValidationRule
+}
+
+type ValidationRule struct {
+	Name string
+	Arg  string
 }
 
 func loadConfig() Config {
 	return Config{
-		Port:           getEnv("PORT", "8080"),
-		SMTPHost:       getEnv("SMTP_HOST", ""),
-		SMTPPort:       getEnv("SMTP_PORT", "587"),
-		SMTPUser:       getEnv("SMTP_USER", ""),
-		SMTPPassword:   getEnv("SMTP_PASSWORD", ""),
-		RecipientEmail: getEnv("RECIPIENT_EMAIL", ""),
-		FromEmail:      getEnv("FROM_EMAIL", ""),
-		FromName:       getEnv("FROM_NAME", ""),
-		SuccessURL:     getEnv("SUCCESS_URL", "/success"),
+		Port:            getEnv("PORT", "8080"),
+		SMTPHost:        getEnv("SMTP_HOST", ""),
+		SMTPPort:        getEnv("SMTP_PORT", "587"),
+		SMTPUser:        getEnv("SMTP_USER", ""),
+		SMTPPassword:    getEnv("SMTP_PASSWORD", ""),
+		RecipientEmail:  getEnv("RECIPIENT_EMAIL", ""),
+		FromEmail:       getEnv("FROM_EMAIL", ""),
+		FromName:        getEnv("FROM_NAME", ""),
+		SuccessURL:      getEnv("SUCCESS_URL", "/success"),
+		ValidationRules: parseValidationRules(getEnv("VALIDATION_RULES", "")),
 	}
+}
+
+func parseValidationRules(spec string) map[string][]ValidationRule {
+	rules := make(map[string][]ValidationRule)
+	if spec == "" {
+		return rules
+	}
+	for _, fieldSpec := range strings.Split(spec, ",") {
+		fieldSpec = strings.TrimSpace(fieldSpec)
+		if fieldSpec == "" {
+			continue
+		}
+		parts := strings.SplitN(fieldSpec, ":", 2)
+		if len(parts) != 2 {
+			log.Printf("Invalid validation rule (missing ':'): %q", fieldSpec)
+			continue
+		}
+		field := strings.TrimSpace(parts[0])
+		if field == "" {
+			continue
+		}
+		for _, ruleSpec := range strings.Split(parts[1], "|") {
+			ruleSpec = strings.TrimSpace(ruleSpec)
+			if ruleSpec == "" {
+				continue
+			}
+			rule := ValidationRule{}
+			if idx := strings.Index(ruleSpec, "."); idx >= 0 {
+				rule.Name = ruleSpec[:idx]
+				rule.Arg = ruleSpec[idx+1:]
+			} else {
+				rule.Name = ruleSpec
+			}
+			rules[field] = append(rules[field], rule)
+		}
+	}
+	return rules
 }
 
 func getEnv(key, defaultValue string) string {
@@ -106,6 +151,13 @@ func handleFormSubmission(config Config) http.HandlerFunc {
 			return
 		}
 
+		// Apply user-defined validation rules
+		if err := applyValidationRules(r.PostForm, config.ValidationRules); err != nil {
+			log.Printf("Form validation error: %v", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		// Build email body from form data
 		emailBody := buildEmailBody(r.PostForm)
 
@@ -115,6 +167,48 @@ func handleFormSubmission(config Config) http.HandlerFunc {
 		// Redirect to success page
 		http.Redirect(w, r, config.SuccessURL, http.StatusSeeOther)
 	}
+}
+
+var validationEmailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+
+func applyValidationRules(formData map[string][]string, rules map[string][]ValidationRule) error {
+	for field, fieldRules := range rules {
+		value := ""
+		if values, ok := formData[field]; ok && len(values) > 0 {
+			value = strings.TrimSpace(values[0])
+		}
+		for _, rule := range fieldRules {
+			switch rule.Name {
+			case "required":
+				if value == "" {
+					return fmt.Errorf("field '%s' is required", field)
+				}
+			case "email":
+				if value != "" && !validationEmailRegex.MatchString(value) {
+					return fmt.Errorf("field '%s' must be a valid email", field)
+				}
+			case "min":
+				n, err := strconv.Atoi(rule.Arg)
+				if err != nil {
+					return fmt.Errorf("invalid min argument for field '%s'", field)
+				}
+				if value != "" && len(value) < n {
+					return fmt.Errorf("field '%s' must be at least %d characters", field, n)
+				}
+			case "max":
+				n, err := strconv.Atoi(rule.Arg)
+				if err != nil {
+					return fmt.Errorf("invalid max argument for field '%s'", field)
+				}
+				if len(value) > n {
+					return fmt.Errorf("field '%s' must be at most %d characters", field, n)
+				}
+			default:
+				return fmt.Errorf("unknown validation rule '%s' for field '%s'", rule.Name, field)
+			}
+		}
+	}
+	return nil
 }
 
 func validateFormData(formData map[string][]string) error {

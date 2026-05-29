@@ -51,6 +51,29 @@ Optional:
 - `PORT` - Server port (default: 8080)
 - `SMTP_PORT` - SMTP port (default: 587)
 - `FROM_NAME` - From display name
+- `VALIDATION_RULES` - Per-field validation rules (see below)
+
+## Validation
+
+Set `VALIDATION_RULES` to validate form fields before sending. Format:
+
+```
+VALIDATION_RULES=email:required|email,name:required|min.2,message:max.5000
+```
+
+- Fields are comma-separated
+- Field name and rules are separated by `:`
+- Multiple rules per field are separated by `|`
+- Rule arguments use `.` (e.g. `min.2`, `max.500`)
+
+Supported rules:
+
+- `required` - value must be present and non-empty
+- `email` - value must be a valid email address
+- `min.N` - value must be at least N characters
+- `max.N` - value must be at most N characters
+
+Failed validations respond with `400 Bad Request` and an error message.
 
 ## HTML Form
 
