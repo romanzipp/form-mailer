@@ -1,7 +1,7 @@
 # Form Mailer
 
 > [!NOTE]
-> This project is primarily developed on [Codeberg](https://codeberg.org/romanzipp/form-mailer) and only mirrored to GitHub. Please open issues and pull requests there.
+> This project is primarily developed on [Codeberg](https://codeberg.org/romanzipp/form-mailer) and only mirrored to GitHub. Please open issues and pull requests on Codeberg.
 
 A simple container you can point your **html contact-`<form>`** to that sends a mail to a given recipient. That's it.
 
