@@ -1,16 +1,4 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
-  "timezone": "Europe/Berlin",
-  "platformAutomerge": false,
-  "prHourlyLimit": 0,
-  "prConcurrentLimit": 0,
-  "minimumReleaseAge": "3 days",
-  "postUpdateOptions": ["gomodTidy"],
-  "packageRules": [
-    {
-      "matchUpdateTypes": ["minor", "patch"],
-      "automerge": true
-    }
-  ]
+  "extends": ["local>romanzipp/renovate-config"]
 }
