@@ -20,7 +20,7 @@ steps:
     <<: *step_resources
     environment:
       REGISTRY_URL:
-        from_secret: container_registry
+        from_secret: registry_url
       REGISTRY_USERNAME:
         from_secret: registry_username
       REGISTRY_TOKEN:
