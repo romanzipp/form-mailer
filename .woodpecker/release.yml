@@ -16,11 +16,9 @@ variables:
 
 steps:
   - name: package-and-push-chart
-    image: alpine/helm:3.16.2
+    image: alpine/helm:4.3.1
     <<: *step_resources
     environment:
-      REGISTRY_URL:
-        from_secret: registry_url
       REGISTRY_USERNAME:
         from_secret: registry_username
       REGISTRY_TOKEN:
