@@ -1,0 +1,29 @@
+when:
+  - event: cron
+    cron: renovate
+
+steps:
+  - name: renovate
+    image: renovate/renovate:44.181.3
+    backend_options:
+      kubernetes:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 3Gi
+    environment:
+      RENOVATE_PLATFORM: forgejo
+      RENOVATE_ENDPOINT: https://codeberg.org/api/v1
+      RENOVATE_REPOSITORIES: romanzipp/form-mailer
+      RENOVATE_ONBOARDING: "false"
+      RENOVATE_REQUIRE_CONFIG: required
+      LOG_LEVEL: info
+      RENOVATE_TOKEN:
+        from_secret: renovate_codeberg_token
+      RENOVATE_GITHUB_COM_TOKEN:
+        from_secret: renovate_github_token
+    commands:
+      - renovate
