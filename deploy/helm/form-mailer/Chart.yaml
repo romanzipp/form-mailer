@@ -4,3 +4,12 @@ description: form-mailer HTML form to email service
 type: application
 version: 0.0.0
 appVersion: "0.0.0"
+home: https://codeberg.org/romanzipp/form-mailer
+sources:
+  - https://codeberg.org/romanzipp/form-mailer
+maintainers:
+  - name: Roman Zipp
+annotations:
+  org.opencontainers.image.vendor: Roman Zipp
+  org.opencontainers.image.licenses: NOASSERTION
+  org.opencontainers.image.documentation: https://codeberg.org/romanzipp/form-mailer
